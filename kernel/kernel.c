@@ -1,4 +1,5 @@
 #include "vga/vga_print.h"
+#include "./time/time.h"
 
 void kernel_main() {
   int i;
@@ -6,8 +7,12 @@ void kernel_main() {
     print_int(i);
     print("This is a for loop at kernel level \n");
   }
-    while (1) {
-        __asm__ volatile ("hlt");
-    }
+  
+  display_time();
+
+
+  while (1) {
+    __asm__ volatile ("hlt");
+  }
 }
 

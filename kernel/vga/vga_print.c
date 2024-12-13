@@ -1,6 +1,11 @@
 #include <stdint.h>
 #include <stddef.h>
 
+// Minimal implementation of va_list
+typedef __builtin_va_list va_list;
+#define va_start(v, l) __builtin_va_start(v, l)
+#define va_arg(v, t) __builtin_va_arg(v, t)
+#define va_end(v) __builtin_va_end(v)
 
 // VGA text buffer address
 #define VGA_ADDRESS 0xB8000
@@ -29,12 +34,10 @@ void put_char(char c) {
 
     // Scroll if necessary
     if (cursor_pos >= VGA_WIDTH * VGA_HEIGHT) {
-        // Simple scrolling: move lines up and clear the last line
         for (int i = 0; i < (VGA_WIDTH * (VGA_HEIGHT - 1)); i++) {
             vga[i * 2] = vga[(i + VGA_WIDTH) * 2];
             vga[i * 2 + 1] = vga[(i + VGA_WIDTH) * 2 + 1];
         }
-        // Clear the last line
         for (int i = (VGA_WIDTH * (VGA_HEIGHT - 1)); i < VGA_WIDTH * VGA_HEIGHT; i++) {
             vga[i * 2] = ' ';
             vga[i * 2 + 1] = WHITE_ON_BLACK;
@@ -55,34 +58,28 @@ void int_to_str(int num, char* buffer) {
     int i = 0;
     int is_negative = 0;
 
-    // Handle 0 explicitly
     if (num == 0) {
         buffer[i++] = '0';
         buffer[i] = '\0';
         return;
     }
 
-    // Handle negative numbers
     if (num < 0) {
         is_negative = 1;
         num = -num;
     }
 
-    // Convert digits to characters in reverse order
     while (num > 0) {
         buffer[i++] = (num % 10) + '0';
         num /= 10;
     }
 
-    // Add negative sign if applicable
     if (is_negative) {
         buffer[i++] = '-';
     }
 
-    // Null-terminate the string
     buffer[i] = '\0';
 
-    // Reverse the string
     for (int j = 0; j < i / 2; j++) {
         char temp = buffer[j];
         buffer[j] = buffer[i - j - 1];
@@ -92,9 +89,46 @@ void int_to_str(int num, char* buffer) {
 
 // Function to print an integer
 void print_int(int num) {
-    char buffer[12]; // Enough to hold a 32-bit integer and a null terminator
+    char buffer[12];
     int_to_str(num, buffer);
     print(buffer);
 }
 
+// Universal print function to handle multiple types
+void print_formatted(const char* format, ...) {
+    va_list args;
+    va_start(args, format);
+
+    for (size_t i = 0; format[i] != '\0'; i++) {
+        if (format[i] == '%' && format[i + 1] != '\0') {
+            i++;
+            switch (format[i]) {
+                case 'd': {
+                    int num = va_arg(args, int);
+                    print_int(num);
+                    break;
+                }
+                case 'c': {
+                    char c = (char)va_arg(args, int);
+                    put_char(c);
+                    break;
+                }
+                case 's': {
+                    char* str = va_arg(args, char*);
+                    print(str);
+                    break;
+                }
+                default: {
+                    put_char('%');
+                    put_char(format[i]);
+                    break;
+                }
+            }
+        } else {
+            put_char(format[i]);
+        }
+    }
+
+    va_end(args);
+}
 
