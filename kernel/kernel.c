@@ -1,7 +1,11 @@
 #include "vga/vga_print.h"
 
 void kernel_main() {
-    print("Hello, Multiboot World!\n");
+  int i;
+  for ( i=1; i<10; i++){
+    print_int(i);
+    print("This is a for loop at kernel level \n");
+  }
     while (1) {
         __asm__ volatile ("hlt");
     }
