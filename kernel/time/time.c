@@ -52,6 +52,23 @@ void display_time() {
     Time current_time;
     get_time(&current_time);
 
-    print("\n");
-    print_formatted("Formatted Time Example:\nHour: %d\nMinute: %d\nSecond: %d\n", current_time.hour, current_time.minute, current_time.second);
+  
+  print_formatted("\nHour: %d\nMinute: %d\nSecond: %d\n", current_time.hour, current_time.minute, current_time.second);
+}
+
+// Sleep function (busy-wait for the specified duration in seconds)
+void sleep(uint32_t seconds) {
+    Time start_time, current_time;
+    get_time(&start_time);
+    uint32_t elapsed_seconds = 0;
+
+    do {
+        get_time(&current_time);
+        // Calculate elapsed time in seconds
+        elapsed_seconds = (current_time.hour * 3600 + current_time.minute * 60 + current_time.second) - 
+                          (start_time.hour * 3600 + start_time.minute * 60 + start_time.second);
+        if ((int32_t)elapsed_seconds < 0) { // Handle day rollover
+            elapsed_seconds += 24 * 3600;
+        }
+    } while (elapsed_seconds < seconds);
 }

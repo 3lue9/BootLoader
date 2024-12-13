@@ -16,6 +16,6 @@ typedef struct {
 // Function prototypes
 void get_time(Time* time);
 void display_time();
+void sleep(uint32_t seconds);
 
 #endif // TIME_H
-
